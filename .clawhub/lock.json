@@ -1,0 +1,21 @@
+{
+  "version": 1,
+  "skills": {
+    "pixel-office": {
+      "version": "1.0.0",
+      "installedAt": 1773913322126
+    },
+    "agent-reach": {
+      "version": "1.1.0",
+      "installedAt": 1773969901902
+    },
+    "find-skills": {
+      "version": "0.1.0",
+      "installedAt": 1774013281613
+    },
+    "self-improving-agent": {
+      "version": "3.0.5",
+      "installedAt": 1774013404421
+    }
+  }
+}

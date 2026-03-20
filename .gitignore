@@ -1,0 +1,5 @@
+
+# 敏感配置
+config/.env
+*.env
+credentials/

@@ -1,0 +1,85 @@
+# 飞书插件视频处理补丁
+# 在飞书插件接收视频消息时，自动调用 Coze 工作流
+
+# 修改文件：extensions/feishu/src/bot.ts
+# 在消息处理逻辑中添加视频识别
+
+--- a/extensions/feishu/src/bot.ts
++++ b/extensions/feishu/src/bot.ts
+@@ -1,6 +1,7 @@
+ import type { ClawdbotConfig, RuntimeEnv } from "openclaw/plugin-sdk/feishu";
+ import {
+   buildAgentMediaPayload,
++  buildPendingHistoryContextFromMap,
+   clearHistoryEntriesIfEnabled,
+   createScopedPairingAccess,
+   DEFAULT_GROUP_HISTORY_LIMIT,
+@@ -50,6 +51,11 @@ const SENDER_NAME_TTL_MS = 10 * 60 * 1000;
+ const senderNameCache = new Map<string, { name: string; expireAt: number }>();
+ 
++// Coze 工作流配置
++const COZE_WORKFLOW_URL = "https://ny5xtnd234.coze.site/run";
++const COZE_TOKEN = "eyJhbGciOiJSUzI1NiIsImtpZCI6IjUyMmYxMWE3LTM2Y2EtNGQ0Ny04NjEyLWVlZTk5MTg5MWM3YSJ9...";
++const TARGET_CHAT_ID = "oc_95a9882e1aca9546c1930b2d27660a6a";
++
+ /**
+  * Handle incoming Feishu message
+  */
+@@ -200,6 +206,50 @@ export async function handleFeishuMessage(
+   
+   // --- Check if this is a video message in the target chat ---
++  if (chat_id === TARGET_CHAT_ID) {
++    const isMentioned = mentions?.some(m => 
++      m.name === "译文" || 
++      m.name === "feishubot" ||
++      m.user_id === account_id
++    );
++    
++    if (isMentioned) {
++      const hasVideo = message?.message_type === "video" ||
++                       message?.attachments?.some(a => a.type === "video");
++      
++      if (hasVideo) {
++        console.log("[译文] 检测到视频消息，调用 Coze 工作流");
++        
++        // 获取视频 URL
++        const videoUrl = message?.video_url || 
++                        message?.content?.match(/https?:\/\/[^\s<>"{}|\\^`\[\]]+/)?.[0];
++        
++        if (videoUrl) {
++          // 调用 Coze 工作流
++          try {
++            const response = await fetch(COZE_WORKFLOW_URL, {
++              method: "POST",
++              headers: {
++                "Authorization": `Bearer ${COZE_TOKEN}`,
++                "Content-Type": "application/json"
++              },
++              body: JSON.stringify({
++                video_file: {
++                  url: videoUrl,
++                  file_type: "video"
++                }
++              })
++            });
++            
++            const result = await response.json();
++            
++            if (result.extracted_content) {
++              // 发送识别结果
++              await sendMessageFeishu({
++                cfg,
++                to: chat_id,
++                text: `✅ 识别完成！\n\n文字稿：\n${result.extracted_content}\n\n剧本：\n${result.script_content || ""}`
++              });
++              return; // 拦截消息处理
++            }
++          } catch (error) {
++            console.error("[译文] Coze 调用失败:", error);
++          }
++        }
++      }
++    }
++  }
++  
+   // --- Continue with normal message processing ---

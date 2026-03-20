@@ -1,0 +1,32 @@
+{
+  "version": 1,
+  "agents": {
+    "译文": {
+      "description": "视频→文字稿 + 剧本（Coze 工作流）",
+      "type": "coze_workflow",
+      "enabled": true,
+      "config": {
+        "workflow_url": "https://ny5xtnd234.coze.site/run",
+        "workflow_name": "文字生成流程",
+        "file_types": ["video", "audio"],
+        "output_format": "text+script"
+      },
+      "chat_ids": [
+        "oc_95a9882e1aca9546c1930b2d27660a6a"
+      ],
+      "commands": [
+        "/文字",
+        "/转写",
+        "/识别",
+        "/译文"
+      ],
+      "auto_process": true,
+      "created_at": "2026-03-14"
+    }
+  },
+  "routing": {
+    "mode": "chat_id",
+    "default_agent": "译文",
+    "fallback": "译文"
+  }
+}

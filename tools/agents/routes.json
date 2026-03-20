@@ -1,0 +1,36 @@
+{
+  "version": 1,
+  "routes": [
+    {
+      "id": "译文 - 文字生成",
+      "name": "译文 - 视频转文字",
+      "description": "在漫剧群中接收视频文件/URL，调用 Coze 工作流生成文字稿",
+      "enabled": true,
+      "trigger": {
+        "type": "feishu_message",
+        "chat_id": "oc_95a9882e1aca9546c1930b2d27660a6a",
+        "chat_name": "漫剧 - 文案评审群",
+        "conditions": {
+          "mention_bot": true,
+          "has_video": true,
+          "has_file": true,
+          "commands": ["/文字", "/转写", "/识别", "/译文"]
+        }
+      },
+      "action": {
+        "type": "script",
+        "script": "agents/message_handler.py",
+        "handler": "process_message",
+        "timeout": 300
+      },
+      "response": {
+        "send_to_chat": true,
+        "format": "text",
+        "mention_user": true
+      },
+      "created_at": "2026-03-14"
+    }
+  ],
+  "default_agent": "译文",
+  "fallback_agent": "译文"
+}

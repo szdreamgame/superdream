@@ -1,0 +1,18 @@
+--- a/extensions/feishu/src/bot.ts
++++ b/extensions/feishu/src/bot.ts
+@@ -862,6 +862,10 @@ export async function handleFeishuMessage(params: {
+ }): Promise<void> {
+   const { cfg, event, botOpenId, botName, runtime, chatHistories, accountId } = params;
+ 
++  // === 译文视频处理 - START ===
++  // 检查是否是漫剧群的视频消息，如果是则调用 Coze 工作流
++  const cozeResult = await tryProcessVideoWithCoze(event, accountId);
++  if (cozeResult) {
++    // 已处理并发送结果，返回
++    return;
++  }
++  // === 译文视频处理 - END ===
++
+   // Resolve account with merged config
+   const account = resolveFeishuAccount({ cfg, accountId });
+   const feishuCfg = account.config;

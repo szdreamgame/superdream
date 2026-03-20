@@ -1,0 +1,13 @@
+{
+  "crawled_date": "2026-03-16T15:28:35.244464",
+  "total": 1,
+  "source": "https://grsai.ai/zh/dashboard/documents",
+  "documents": [
+    {
+      "title": "nano-banana",
+      "url": "https://grsai.ai/zh/dashboard/documents/nano-banana",
+      "filepath": "/root/.openclaw/workspace/memory/grsai-docs/nano-banana.md",
+      "crawled_date": "2026-03-16T15:28:29.809508"
+    }
+  ]
+}
