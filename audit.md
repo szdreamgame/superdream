@@ -59,6 +59,47 @@
 
 ### 2026-03-21
 
+**05:08 - 系统升级 - P2 阶段补充**
+
+**操作者**: 超梦  
+**操作类型**: 系统升级  
+**影响范围**: org.md + audit.md
+
+**详情**:
+```
+P2 阶段补充内容:
+
+org.md 新增:
+- Agent 委派任务功能详细实现
+  - 委派协议定义
+  - 委派场景示例
+  - 委派权限矩阵
+  - 委派任务追踪
+  - 委派冲突解决机制
+- 员工入职流程
+  - 6 阶段入职检查清单
+  - 入职模板文件
+  - 入职评估标准
+  - 入职导师制度
+
+audit.md 新增:
+- 日志查询功能
+  - 查询命令示例
+  - 高级查询脚本 (audit-query.sh)
+  - 统计报表生成
+  - 导出功能 (CSV/JSON/Markdown)
+  - 自动化报表 (定时任务)
+  - 审计告警机制
+  - 日志搜索索引
+```
+
+**结果**: ✅ 成功  
+**Git 提交**: 待提交
+
+---
+
+### 2026-03-21
+
 **03:41 - 系统升级 - P2 阶段实施**
 
 **操作者**: 超梦  
@@ -208,6 +249,207 @@
 - 详细日志：保留 30 天
 - 摘要日志：保留 1 年
 - 审计报告：永久保存
+
+---
+
+## 🔍 日志查询功能
+
+### 查询命令
+
+使用以下命令查询审计日志：
+
+```bash
+# 按日期查询
+grep "### 2026-03-21" audit.md
+
+# 按操作者查询
+grep "操作者：承道" audit.md
+
+# 按操作类型查询
+grep "操作类型：配置变更" audit.md
+
+# 按结果查询
+grep "结果：✅ 成功" audit.md
+
+# 组合查询（某天的配置变更）
+grep -A5 "### 2026-03-21" audit.md | grep "配置变更"
+```
+
+### 高级查询脚本
+
+创建查询脚本 `~/bin/audit-query.sh`:
+
+```bash
+#!/bin/bash
+# 审计日志查询工具
+
+AUDIT_FILE="$HOME/.openclaw/workspace/audit.md"
+
+usage() {
+    echo "用法：audit-query [选项]"
+    echo ""
+    echo "选项:"
+    echo "  -d, --date <日期>     按日期查询 (YYYY-MM-DD)"
+    echo "  -o, --operator <名字> 按操作者查询"
+    echo "  -t, --type <类型>     按操作类型查询"
+    echo "  -r, --result <结果>   按结果查询 (成功/失败/部分成功)"
+    echo "  -s, --since <日期>    查询指定日期之后的日志"
+    echo "  -u, --until <日期>    查询指定日期之前的日志"
+    echo "  -l, --limit <数量>    限制返回结果数量"
+    echo "  -h, --help            显示帮助信息"
+    echo ""
+    echo "示例:"
+    echo "  audit-query -d 2026-03-21"
+    echo "  audit-query -o 超梦 -t 配置变更"
+    echo "  audit-query --since 2026-03-20 --limit 10"
+}
+
+# 解析参数
+while [[ $# -gt 0 ]]; do
+    case $1 in
+        -d|--date) DATE="$2"; shift 2 ;;
+        -o|--operator) OPERATOR="$2"; shift 2 ;;
+        -t|--type) TYPE="$2"; shift 2 ;;
+        -r|--result) RESULT="$2"; shift 2 ;;
+        -s|--since) SINCE="$2"; shift 2 ;;
+        -u|--until) UNTIL="$2"; shift 2 ;;
+        -l|--limit) LIMIT="$2"; shift 2 ;;
+        -h|--help) usage; exit 0 ;;
+        *) echo "未知选项：$1"; usage; exit 1 ;;
+    esac
+done
+
+# 执行查询
+QUERY_RESULT="$AUDIT_FILE"
+
+if [ -n "$DATE" ]; then
+    QUERY_RESULT=$(grep -A10 "### $DATE" "$QUERY_RESULT")
+fi
+
+if [ -n "$OPERATOR" ]; then
+    QUERY_RESULT=$(echo "$QUERY_RESULT" | grep -B5 -A5 "操作者：$OPERATOR")
+fi
+
+if [ -n "$TYPE" ]; then
+    QUERY_RESULT=$(echo "$QUERY_RESULT" | grep -B5 -A5 "操作类型：$TYPE")
+fi
+
+if [ -n "$RESULT" ]; then
+    case $RESULT in
+        成功) QUERY_RESULT=$(echo "$QUERY_RESULT" | grep -B5 -A5 "结果：✅ 成功") ;;
+        失败) QUERY_RESULT=$(echo "$QUERY_RESULT" | grep -B5 -A5 "结果：❌ 失败") ;;
+        部分成功) QUERY_RESULT=$(echo "$QUERY_RESULT" | grep -B5 -A5 "结果：⚠️ 部分成功") ;;
+    esac
+fi
+
+# 输出结果
+if [ -n "$LIMIT" ]; then
+    echo "$QUERY_RESULT" | head -n $LIMIT
+else
+    echo "$QUERY_RESULT"
+fi
+```
+
+### 查询示例
+
+| 查询需求 | 命令 |
+|----------|------|
+| 查看今天的所有操作 | `audit-query -d 2026-03-21` |
+| 查看超梦的所有操作 | `audit-query -o 超梦` |
+| 查看配置变更历史 | `audit-query -t 配置变更` |
+| 查看失败的操作 | `audit-query -r 失败` |
+| 查看最近 10 条记录 | `audit-query --limit 10` |
+| 查看承道的配置变更 | `audit-query -o 承道 -t 配置变更` |
+
+### 统计报表
+
+生成统计报表：
+
+```bash
+# 按操作者统计
+echo "=== 按操作者统计 ==="
+grep "操作者：" audit.md | sort | uniq -c | sort -rn
+
+# 按操作类型统计
+echo "=== 按操作类型统计 ==="
+grep "操作类型：" audit.md | sort | uniq -c | sort -rn
+
+# 按结果统计
+echo "=== 按结果统计 ==="
+grep "结果：" audit.md | sort | uniq -c | sort -rn
+
+# 今日操作摘要
+echo "=== 今日摘要 ($(date +%Y-%m-%d)) ==="
+grep -A20 "### $(date +%Y-%m-%d)" audit.md | head -25
+```
+
+### 导出功能
+
+导出审计日志为不同格式：
+
+```bash
+# 导出为 CSV
+grep -E "^(###|操作者 | 操作类型 | 结果)" audit.md | \
+  sed 's/### /日期：/' | \
+  tr '\n' ',' > audit_export.csv
+
+# 导出为 JSON (需要 jq)
+grep -E "^(###|操作者 | 操作类型 | 详情 | 结果)" audit.md | \
+  jq -R -s -c 'split("\n") | map(select(length > 0))' > audit_export.json
+
+# 导出为 Markdown 摘要
+grep -B1 -A10 "### 2026-03-21" audit.md > audit_summary_2026-03-21.md
+```
+
+### 自动化报表
+
+创建定时任务生成每日/每周审计报告：
+
+```bash
+# 添加到 crontab (每天 00:00 生成昨日报告)
+0 0 * * * /root/.openclaw/workspace/scripts/daily-audit-report.sh
+
+# 添加到 crontab (每周一 09:00 生成上周报告)
+0 9 * * 1 /root/.openclaw/workspace/scripts/weekly-audit-report.sh
+```
+
+### 审计告警
+
+配置异常操作告警：
+
+```bash
+# 检测危险操作
+grep "危险操作" audit.md | tail -5
+
+# 检测连续失败
+grep "结果：❌ 失败" audit.md | wc -l
+
+# 检测非工作时间操作 (23:00-06:00)
+grep -E "0[0-5]:[0-9]{2}|23:[0-9]{2}" audit.md
+```
+
+### 查询权限
+
+| 用户角色 | 查询权限 |
+|----------|----------|
+| 潘总 (管理员) | 全部查询权限 |
+| 超梦 (协调者) | 全部查询权限 |
+| 其他智能体 | 仅查询自己的操作 |
+
+### 日志搜索索引
+
+为提高查询效率，建立搜索索引：
+
+```bash
+# 创建索引文件
+grep -n "### " audit.md | cut -d: -f1 > audit_index_line.txt
+grep -n "操作者：" audit.md | cut -d: -f1 > audit_index_operator.txt
+grep -n "操作类型：" audit.md | cut -d: -f1 > audit_index_type.txt
+
+# 快速定位
+LINE=$(grep -n "### 2026-03-21" audit.md | head -1 | cut -d: -f1)
+sed -n "${LINE},$((LINE+20))p" audit.md
+```
 
 ---
 

@@ -16,6 +16,22 @@
     "self-improving-agent": {
       "version": "3.0.5",
       "installedAt": 1774013404421
+    },
+    "proactive-agent-skill": {
+      "version": "1.0.0",
+      "installedAt": 1774040821128
+    },
+    "openclaw-tavily-search": {
+      "version": "0.1.0",
+      "installedAt": 1774040821189
+    },
+    "x-article-reader": {
+      "version": "0.1.1",
+      "installedAt": 1774040821825
+    },
+    "ontology": {
+      "version": "1.0.4",
+      "installedAt": 1774040821884
     }
   }
 }
