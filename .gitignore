@@ -2,4 +2,5 @@
 # 敏感配置
 config/.env
 *.env
+!.env.example
 credentials/
